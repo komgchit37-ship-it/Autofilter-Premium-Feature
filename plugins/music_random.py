@@ -53,7 +53,7 @@ async def random_song_callback(client, query):
         
         # ၆ နာရီ = 6 * 3600 seconds
         # ၆ နာရီကြာရင် message ကို delete လုပ်ဖို့ task တစ်ခု ဖန်တီးလိုက်တာပါ
-        asyncio.create_task(delete_msg_after_delay(sent_msg, 6 * 3600))
+        asyncio.create_task(delete_msg_after_delay(sent_msg, 6 * 60))
         
     else:
         await query.message.reply("ဒီအမျိုးအစားထဲမှာ သီချင်း ရှာမတွေ့သေးဘူးဗျာ။ နောက်မှ ပြန်စမ်းကြည့်ပေးပါ။")
