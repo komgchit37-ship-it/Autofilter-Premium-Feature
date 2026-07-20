@@ -97,10 +97,24 @@ async def start(client, message):
     if not await db.is_user_exist(message.from_user.id):
         await db.add_user(message.from_user.id, message.from_user.first_name)
         await client.send_message(LOG_CHANNEL, script.LOG_TEXT_P.format(message.from_user.id, message.from_user.mention))
-    if len(message.command) != 2:
+        if len(message.command) != 2:
         buttons = [[
                     InlineKeyboardButton('🔰 ᴀᴅᴅ ᴍᴇ ᴛᴏ ʏᴏᴜʀ ɢʀᴏᴜᴘ 🔰', url=f'http://t.me/{temp.U_NAME}?startgroup=true')
-                ],[
+                ],
+                # ဒီနေရာမှာ သီချင်း အမျိုးအစား Button တွေ ထည့်ပါ
+                [
+                    InlineKeyboardButton("💔 အသဲကွဲ", callback_data="rnd_sad"), 
+                    InlineKeyboardButton("❤️ အချစ်", callback_data="rnd_love")
+                ],
+                [
+                    InlineKeyboardButton("👨‍👩‍👧‍👦 မိဘ", callback_data="rnd_parent"), 
+                    InlineKeyboardButton("👶 ကလေး", callback_data="rnd_child")
+                ],
+                [
+                    InlineKeyboardButton("🎉 သင်္ကြန်", callback_data="rnd_thingyan"), 
+                    InlineKeyboardButton("🚀 ခေတ်ပေါ်", callback_data="rnd_modern")
+                ],
+                [
                     InlineKeyboardButton(' ʜᴇʟᴘ 📢', callback_data='help'),
                     InlineKeyboardButton(' ᴀʙᴏᴜᴛ 📖', callback_data='about')
                 ],[
@@ -108,6 +122,8 @@ async def start(client, message):
                     InlineKeyboardButton('ᴜᴘɢʀᴀᴅᴇ 🎟', callback_data="premium_info"),
                 ]]
         reply_markup = InlineKeyboardMarkup(buttons)
+        # ကျန်တဲ့ code တွေကတော့ အတူတူပါပဲ...
+
         current_time = datetime.now(pytz.timezone(TIMEZONE))
         curr_time = current_time.hour        
         if curr_time < 12:
