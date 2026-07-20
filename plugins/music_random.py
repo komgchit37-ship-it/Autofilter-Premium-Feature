@@ -1,6 +1,6 @@
 import random
 from pyrogram import Client, filters
-# ဒီနေရာမှာ get_bad_files နေရာတွင် get_search_results ဟု ပြောင်းလိုက်ပါ
+# ဒီနေရာမှာ get_search_results ကို import လုပ်ပါ
 from database.ia_filterdb import get_search_results 
 
 @Client.on_callback_query(filters.regex(r"^rnd_"))
@@ -26,12 +26,14 @@ async def random_song_callback(client, query):
     random.shuffle(search_keywords)
     
     found_song = None
+    chat_id = query.message.chat.id # chat_id ကို ရယူခြင်း
     
     # Keyword တစ်ခုချင်းစီကို Loop ပတ်ပြီး ရှာပါမယ်
     for keyword in search_keywords:
         print(f"DEBUG: အခု ' {keyword} ' နဲ့ ရှာနေပါတယ်...")
-        # ဒီနေရာမှာ get_search_results ကို ခေါ်သုံးပါမယ်
-        files, total = await get_search_results(keyword) 
+        
+        # chat_id ကို ထည့်ပေးရပါမယ်၊ ပြန်ရလာတဲ့ (၃) ခုကို လက်ခံဖို့ next_offset ကို ထည့်ရပါမယ်
+        files, next_offset, total = await get_search_results(chat_id, keyword) 
         
         if files and len(files) > 0:
             print(f"DEBUG: ' {keyword} ' နဲ့ တွေ့ပါပြီ!")
@@ -42,7 +44,7 @@ async def random_song_callback(client, query):
     
     if found_song:
         await client.send_cached_media(
-            chat_id=query.message.chat.id,
+            chat_id=chat_id,
             file_id=found_song.file_id,
             caption=f"🎵 သင့်အတွက် ရွေးချယ်ပေးထားသော သီချင်း:\n\n**{found_song.file_name}**"
         )
