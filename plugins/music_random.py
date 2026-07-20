@@ -17,32 +17,35 @@ async def random_song_callback(client, query):
         "modern": ["Rap", "Hip Hop", "Pop"]
     }
     
-    # ရွေးလိုက်တဲ့ category ထဲက keywords တွေကို ခေါ်ယူခြင်း
     search_keywords = keywords.get(cat, [])
     
     if not search_keywords:
         await query.answer("ဒီ category မှာ keywords မသတ်မှတ်ရသေးပါဘူး။")
         return
 
-    # User ကို စောင့်ခိုင်းတဲ့စာ ပြခြင်း
-    await query.answer("သီချင်း Random ရှာနေတယ်ဗျာ... ⏳", show_alert=False)
+    await query.answer("သီချင်း ရှာနေတယ်ဗျာ... ⏳", show_alert=False)
     
-    # keywords ထဲက တစ်ခုခုကို random ရွေးပြီး Database ထဲမှာ ရှာခိုင်းခြင်း
-    search_query = random.choice(search_keywords)
+    # Keyword တွေကို အရင် Random ရှuffling လုပ်လိုက်မယ် (အမြဲတမ်း ပထမဆုံး Keyword ပဲ မရှာအောင်လို့)
+    random.shuffle(search_keywords)
     
-    # get_bad_files function ကိုသုံးပြီး သီချင်းတွေ ရှာခြင်း
-    files, total = await get_bad_files(search_query) 
+    found_song = None
     
-    if files and len(files) > 0:
-        # ရှာလို့ရလာတဲ့ သီချင်းတွေထဲက တစ်ပုဒ်ကို random ရွေးခြင်း
-        chosen_song = random.choice(files)
+    # Keyword တစ်ခုချင်းစီကို Loop ပတ်ပြီး ရှာပါမယ်
+    for keyword in search_keywords:
+        files, total = await get_bad_files(keyword)
         
+        # သီချင်းတွေ့ပြီဆိုရင် Loop ကို ရပ်လိုက်ပါမယ်
+        if files and len(files) > 0:
+            found_song = random.choice(files)
+            break 
+    
+    if found_song:
         # သီချင်းကို User ဆီ ပို့ပေးခြင်း
         await client.send_cached_media(
             chat_id=query.message.chat.id,
-            file_id=chosen_song.file_id,
-            caption=f"🎵 သင့်အတွက် ရွေးချယ်ပေးထားသော သီချင်း:\n\n**{chosen_song.file_name}**"
+            file_id=found_song.file_id,
+            caption=f"🎵 သင့်အတွက် ရွေးချယ်ပေးထားသော သီချင်း:\n\n**{found_song.file_name}**"
         )
     else:
-        # ရှာမတွေ့ရင် ပြမယ့်စာ
+        # အကုန်လုံးရှာပြီးတာတောင် မတွေ့မှ ဒီစာကို ပြပါမယ်
         await query.message.reply("ဒီအမျိုးအစားထဲမှာ သီချင်း ရှာမတွေ့သေးဘူးဗျာ။ နောက်မှ ပြန်စမ်းကြည့်ပေးပါ။")
