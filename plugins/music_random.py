@@ -1,7 +1,15 @@
 import random
+import asyncio # အသစ်ထည့်ရမည့် အပိုင်း
 from pyrogram import Client, filters
-# ဒီနေရာမှာ get_search_results ကို import လုပ်ပါ
 from database.ia_filterdb import get_search_results 
+
+# Message အလိုအလျောက် ပျက်စေမည့် Function
+async def delete_msg_after_delay(message, delay):
+    await asyncio.sleep(delay)
+    try:
+        await message.delete()
+    except Exception as e:
+        print(f"Error deleting message: {e}")
 
 @Client.on_callback_query(filters.regex(r"^rnd_"))
 async def random_song_callback(client, query):
@@ -26,27 +34,26 @@ async def random_song_callback(client, query):
     random.shuffle(search_keywords)
     
     found_song = None
-    chat_id = query.message.chat.id # chat_id ကို ရယူခြင်း
+    chat_id = query.message.chat.id
     
-    # Keyword တစ်ခုချင်းစီကို Loop ပတ်ပြီး ရှာပါမယ်
     for keyword in search_keywords:
-        print(f"DEBUG: အခု ' {keyword} ' နဲ့ ရှာနေပါတယ်...")
-        
-        # chat_id ကို ထည့်ပေးရပါမယ်၊ ပြန်ရလာတဲ့ (၃) ခုကို လက်ခံဖို့ next_offset ကို ထည့်ရပါမယ်
         files, next_offset, total = await get_search_results(chat_id, keyword) 
         
         if files and len(files) > 0:
-            print(f"DEBUG: ' {keyword} ' နဲ့ တွေ့ပါပြီ!")
             found_song = random.choice(files)
             break 
-        else:
-            print(f"DEBUG: ' {keyword} ' နဲ့ ရှာမတွေ့ပါဘူး။ နောက်တစ်ခု ထပ်ရှာမယ်။")
     
     if found_song:
-        await client.send_cached_media(
+        # သီချင်းကို ပို့ပြီး ပို့လိုက်တဲ့ message ကို သိမ်းထားပါမယ်
+        sent_msg = await client.send_cached_media(
             chat_id=chat_id,
             file_id=found_song.file_id,
             caption=f"🎵 သင့်အတွက် ရွေးချယ်ပေးထားသော သီချင်း:\n\n**{found_song.file_name}**"
         )
+        
+        # ၆ နာရီ = 6 * 3600 seconds
+        # ၆ နာရီကြာရင် message ကို delete လုပ်ဖို့ task တစ်ခု ဖန်တီးလိုက်တာပါ
+        asyncio.create_task(delete_msg_after_delay(sent_msg, 6 * 3600))
+        
     else:
         await query.message.reply("ဒီအမျိုးအစားထဲမှာ သီချင်း ရှာမတွေ့သေးဘူးဗျာ။ နောက်မှ ပြန်စမ်းကြည့်ပေးပါ။")
