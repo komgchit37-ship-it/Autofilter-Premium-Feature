@@ -25,19 +25,23 @@ async def random_song_callback(client, query):
 
     await query.answer("သီချင်း ရှာနေတယ်ဗျာ... ⏳", show_alert=False)
     
-    # Keyword တွေကို အရင် Random ရှuffling လုပ်လိုက်မယ် (အမြဲတမ်း ပထမဆုံး Keyword ပဲ မရှာအောင်လို့)
+    # Keyword တွေကို အရင် Random ရှuffling လုပ်လိုက်မယ်
     random.shuffle(search_keywords)
     
     found_song = None
     
     # Keyword တစ်ခုချင်းစီကို Loop ပတ်ပြီး ရှာပါမယ်
     for keyword in search_keywords:
+        print(f"DEBUG: အခု ' {keyword} ' နဲ့ ရှာနေပါတယ်...")
         files, total = await get_bad_files(keyword)
         
         # သီချင်းတွေ့ပြီဆိုရင် Loop ကို ရပ်လိုက်ပါမယ်
         if files and len(files) > 0:
+            print(f"DEBUG: ' {keyword} ' နဲ့ တွေ့ပါပြီ!")
             found_song = random.choice(files)
             break 
+        else:
+            print(f"DEBUG: ' {keyword} ' နဲ့ ရှာမတွေ့ပါဘူး။ နောက်တစ်ခု ထပ်ရှာမယ်။")
     
     if found_song:
         # သီချင်းကို User ဆီ ပို့ပေးခြင်း
