@@ -48,12 +48,12 @@ async def random_song_callback(client, query):
         sent_msg = await client.send_cached_media(
             chat_id=chat_id,
             file_id=found_song.file_id,
-            caption=f"🎵 သင့်အတွက် random ရွေးချယ်ပေးထားသော သီချင်း ၁၀မိနစ်နေ auto ပျက်ပါမယ်:\n\n**{found_song.file_name}**"
+            caption=f"🎵 သင့်အတွက် random ရွေးချယ်ပေးထားသော သီချင်း ၆၀မိနစ်နေ auto ပျက်ပါမယ် save message မှာ forward လုပ်သိမ်းထားနိုင်ပါတယ်:\n\n**{found_song.file_name}**"
         )
         
         # ၆ နာရီ = 6 * 3600 seconds
         # ၆ နာရီကြာရင် message ကို delete လုပ်ဖို့ task တစ်ခု ဖန်တီးလိုက်တာပါ
-        asyncio.create_task(delete_msg_after_delay(sent_msg, 10 * 60))
+        asyncio.create_task(delete_msg_after_delay(sent_msg, 1 * 3600))
         
     else:
         await query.message.reply("ဒီအမျိုးအစားထဲမှာ သီချင်း ရှာမတွေ့သေးဘူးဗျာ။ နောက်မှ ပြန်စမ်းကြည့်ပေးပါ။")
