@@ -48,7 +48,7 @@ async def random_song_callback(client, query):
         sent_msg = await client.send_cached_media(
             chat_id=chat_id,
             file_id=found_song.file_id,
-            caption=f"🎵 သင့်အတွက် random ရွေးချယ်ပေးထားသော သီချင်း ၆၀မိနစ်နေ auto ပျက်ပါမယ် save message မှာ forward လုပ်သိမ်းထားနိုင်ပါတယ်:\n\n**{found_song.file_name}**"
+            caption=f"🎵 သင့်အတွက် random ရွေးချယ်ပေးထားသော သီချင်း ၆၀မိနစ်နေ auto ပျက်ပါမယ် Saved messages မှာ forward လုပ်သိမ်းထားနိုင်ပါတယ်:\n\n**{found_song.file_name}**"
         )
         
         # ၆ နာရီ = 6 * 3600 seconds
