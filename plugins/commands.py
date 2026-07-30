@@ -1387,3 +1387,48 @@ async def reset_trial(client, message):
         await message.reply_text(message_text)
     except Exception as e:
         await message.reply_text(f"An error occurred: {e}")
+@Client.on_message(filters.command('deletedup') & filters.user(ADMINS))
+async def delete_duplicates(bot, message):
+    msg = await message.reply("Duplicate ဖိုင်များကို Database နှစ်ခုလုံးတွင် စစ်ဆေးနေပါသည်... ⏳", quote=True)
+    
+    # ဖိုင်နာမည်နှင့် အရွယ်အစား တူနေသည်များကို အုပ်စုဖွဲ့သည့် Pipeline
+    pipeline = [
+        {
+            "$group": {
+                "_id": {
+                    "file_name": "$file_name",
+                    "file_size": "$file_size"
+                },
+                "ids": {"$push": "$_id"},
+                "count": {"$sum": 1}
+            }
+        },
+        {
+            "$match": {
+                "count": {"$gt": 1}  # ၁ ခုထက်ပိုတူနေသော Duplicate အုပ်စုများကိုပဲ ယူမည်
+            }
+        }
+    ]
+    
+    total_deleted = 0
+    
+    # 1. Media Collection ထဲမှ Duplicate များ ရှင်းထုတ်ခြင်း
+    async for doc in Media.collection.aggregate(pipeline):
+        duplicate_ids = doc['ids'][1:]  # ပထမ ၁ ခု (doc['ids'][0]) ကို ချန်ပြီး ကျန်တာယူမည်
+        result = await Media.collection.delete_many({"_id": {"$in": duplicate_ids}})
+        total_deleted += result.deleted_count
+
+    # 2. Media2 Collection ထဲမှ Duplicate များ ရှင်းထုတ်ခြင်း
+    async for doc in Media2.collection.aggregate(pipeline):
+        duplicate_ids = doc['ids'][1:]  # ပထမ ၁ ခုကို ချန်ပြီး ကျန်တာယူမည်
+        result = await Media2.collection.delete_many({"_id": {"$in": duplicate_ids}})
+        total_deleted += result.deleted_count
+
+    # ရလဒ် ပြသခြင်း
+    if total_deleted > 0:
+        await msg.edit(
+            f"✅ Duplicate ဖိုင်ပေါင်း **{total_deleted}** ခုကို `Media` နှင့် `Media2` ထဲမှ ဖျက်ပေးလိုက်ပါပြီ!\n\n"
+            f"*(မူရင်း ဖိုင် ၁ ခုစီကိုတော့ Database ထဲမှာ ချန်ထားပေးထားပါတယ်)*"
+        )
+    else:
+        await msg.edit("❌ Database (Media & Media2) ထဲမှာ Duplicate ဖိုင်များ မရှိပါ!")
