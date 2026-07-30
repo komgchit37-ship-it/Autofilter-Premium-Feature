@@ -19,11 +19,11 @@ async def random_song_callback(client, query):
         "sad": ["အသဲကွဲ", "လွမ်း", "မျက်ရည်"],
         "love": ["အချစ်", "ချစ်သူ", "ရင်ခုန်"],
         "parent": ["မိဘ", "အမေ", "အဖေ"],
-        "child": ["ကလေး", "kid"],
+        "child": ["kid"],
         "thingyan": ["သင်္ကြန်", "ရေကစား"],
         "other": ["other"],
         "ahlu": ["ahlu"],
-        "web": ["web"],
+        "web": ["wed"],
         "old": ["old"],
         "modern": ["Rap", "Hip Hop", "Pop"]
     }
