@@ -116,7 +116,7 @@ async def start(client, message):
                     InlineKeyboardButton("🌐 နိုင်ငံခြား", callback_data="rnd_other")
                 ],
                 [
-                    InlineKeyboardButton(" အလှူသီချင်း", callback_data="rnd_ahlu"),
+                    InlineKeyboardButton("🎊 အလှူသီချင်း", callback_data="rnd_ahlu"),
                     InlineKeyboardButton("👩‍❤️‍👨 မင်္ဂလာဆောင်", callback_data="rnd_web")
                 ],
                 [
