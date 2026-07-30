@@ -113,15 +113,15 @@ async def start(client, message):
                 ],
                 [
                     InlineKeyboardButton("🎉 သင်္ကြန်", callback_data="rnd_thingyan"), 
-                    InlineKeyboardButton("🚀 ခေတ်ပေါ်", callback_data="rnd_modern")
+                    InlineKeyboardButton("🌐 နိုင်ငံခြား", callback_data="rnd_other")
                 ],
                 [
-                    InlineKeyboardButton(' ʜᴇʟᴘ 📢', callback_data='help'),
-                    InlineKeyboardButton(' ᴀʙᴏᴜᴛ 📖', callback_data='about')
+                    InlineKeyboardButton(" အလှူသီချင်း", callback_data="rnd_ahlu"),
+                    InlineKeyboardButton("👩‍❤️‍👨 မင်္ဂလာဆောင်", callback_data="rnd_web")
                 ],
                 [
-                    InlineKeyboardButton('ᴛᴏᴘ sᴇᴀʀᴄʜɪɴɢ ⭐', callback_data="topsearch"),
-                    InlineKeyboardButton('ᴜᴘɢʀᴀᴅᴇ 🎟', callback_data="premium_info"),
+                    InlineKeyboardButton("🚀 ခေတ်ပေါ်", callback_data="rnd_modern"),
+                    InlineKeyboardButton("📻ခောတ်ဟောင်း", callback_data="rnd_old"),
                 ]]
         reply_markup = InlineKeyboardMarkup(buttons)
         
@@ -263,8 +263,8 @@ async def start(client, message):
                 photo = random.choice(FSUB_PICS) if FSUB_PICS else "https://graph.org/file/7478ff3eac37f4329c3d8.jpg"
                 caption = (
                     f"👋 ʜᴇʟʟᴏ {message.from_user.mention}\n\n"
-                    "🛑 ʏᴏᴜ ᴍᴜsᴛ ᴊᴏɪɴ ᴛʜᴇ ʀᴇǫᴜɪʀᴇᴅ ᴄʜᴀɴɴᴇʟs ᴛᴏ ᴄᴏɴᴛɪɴᴜᴇ.\n"
-                    "👉 ᴊᴏɪɴ ᴀʟʟ ᴛʜᴇ ʙᴇʟᴏᴡ ᴄʜᴀɴɴᴇʟs ᴀɴᴅ ᴛʀʏ ᴀɢᴀɪɴ."
+                    "🛑 ကျေးဇူးပြု၍ Channels လေးတေ join ပေးပါဦး.\n"
+                    "👉 Join ပီးပါက ᴛʀʏ ᴀɢᴀɪɴ နိုပ်ပါ။."
                 )
                 await message.reply_photo(
                     photo=photo,
