@@ -141,7 +141,7 @@ async def start(client, message):
             # ⬇️ အဆိုတော် နာမည် ရိုက်ရှာရန် Button အသစ် ထည့်သွင်းလိုက်သည့် အပိုင်း
             [
                 InlineKeyboardButton(
-                    "🔍 အဆိုတော် နာမည်ဖြင့် ရိုက်ရှာရန်",
+                    "🔍 အဆိုတော် or သီချင်း နာမည်ဖြင့် ရိုက်ရှာရန်",
                     callback_data="search_artist",
                 )
             ],
