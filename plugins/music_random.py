@@ -3,10 +3,13 @@ import random
 from database.ia_filterdb import get_search_results
 from pyrogram import Client, filters
 from pyrogram.errors import FloodWait
-from pyrogram.types import InputMediaVideo  # Audio အစား Video ကို ပြောင်းလဲ Import လုပ်ထားသည်
+from pyrogram.types import (
+    ForceReply,
+    InputMediaVideo,
+)  # ForceReply နှင့် InputMediaVideo အားလုံး ပါဝင်သည်
 
 
-# Message အလိုအလျောက် ပျက်စေမည့် Function
+# Message အလိုအလျောက် ပျက်စေမည့် Helper Function
 async def delete_msg_after_delay(message, delay):
     await asyncio.sleep(delay)
     try:
@@ -15,6 +18,9 @@ async def delete_msg_after_delay(message, delay):
         print(f"Error deleting message: {e}")
 
 
+# =========================================================
+# ၁။ Random ဗီဒီယို ၁၀ ဖိုင် ပို့ပေးသည့် Callback Handler
+# =========================================================
 @Client.on_callback_query(filters.regex(r"^rnd_"))
 async def random_video_callback(client, query):
     cat = query.data.split("_")[1]
@@ -47,7 +53,6 @@ async def random_video_callback(client, query):
     all_found_videos = []
     seen_file_ids = set()
 
-    # Keyword အားလုံးမှ ဗီဒီယိုများကို လိုက်ရှာပြီး List ထဲ စုစည်းပါမည်
     for keyword in search_keywords:
         files, next_offset, total = await get_search_results(chat_id, keyword)
 
@@ -58,11 +63,9 @@ async def random_video_callback(client, query):
                     all_found_videos.append(file)
 
     if all_found_videos:
-        # တွေ့ရှိသော ဗီဒီယိုများထဲမှ Random ၁၀ ဖိုင် ရွေးထုတ်ပါမည်
         random.shuffle(all_found_videos)
         selected_videos = all_found_videos[:10]
 
-        # send_media_group အတွက် InputMediaVideo List ပြုလုပ်ခြင်း
         media_list = []
         for video in selected_videos:
             caption = (
@@ -75,17 +78,14 @@ async def random_video_callback(client, query):
             )
 
         try:
-            # ဗီဒီယို ၁၀ ဖိုင်လုံးကို Album (Video Group) အဖြစ် တစ်ခါတည်း ပို့ပေးမည်
             sent_msgs = await client.send_media_group(
                 chat_id=chat_id, media=media_list
             )
 
-            # ပို့လိုက်သော Message တစ်ခုချင်းစီကို ၁ နာရီ (3600 စက္ကန့်) ကြာလျှင် Auto ဖျက်ခိုင်းမည်
             for msg in sent_msgs:
                 asyncio.create_task(delete_msg_after_delay(msg, 1 * 3600))
 
         except FloodWait as e:
-            # Rate Limit မိပါက Telegram မှ စောင့်ခိုင်းသည့် စက္ကန့်အတိုင်း ခဏ ရပ်စောင့်မည်
             await asyncio.sleep(e.value)
         except Exception as e:
             print(f"Error sending video media group: {e}")
@@ -94,3 +94,15 @@ async def random_video_callback(client, query):
         await query.message.reply(
             "ဒီအမျိုးအစားထဲမှာ ဗီဒီယို ရှာမတွေ့သေးဘူးဗျာ။ နောက်မှ ပြန်စမ်းကြည့်ပေးပါ။"
         )
+
+
+# =========================================================
+# ၂။ အဆိုတော် နာမည် ရိုက်ရှာရန် စာတောင်းသည့် Callback Handler
+# =========================================================
+@Client.on_callback_query(filters.regex("^search_artist$"))
+async def search_artist_callback(client, query):
+    await query.message.reply_text(
+        "🎤 **သင်ရှာလိုသော အဆိုတော် နာမည်ကို ဒီစာကို Reply ပြန်၍ ရိုက်ထည့်ပေးပါခင်ဗျာ -**",
+        reply_markup=ForceReply(True),
+    )
+    await query.answer()
