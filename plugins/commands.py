@@ -12,7 +12,14 @@ from Script import script
 from datetime import datetime
 from database.refer import referdb
 from database.config_db import mdb
-from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message, ReplyKeyboardMarkup
+from pyrogram.types import (
+    ForceReply,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    Message,
+    ReplyKeyboardMarkup,
+)
+
 from pyrogram import Client, filters, enums
 from pyrogram.errors import FloodWait, ChatAdminRequired, UserNotParticipant
 from database.ia_filterdb import Media, Media2, get_file_details, unpack_new_file_id, get_bad_files
@@ -100,29 +107,45 @@ async def start(client, message):
         await client.send_message(LOG_CHANNEL, script.LOG_TEXT_P.format(message.from_user.id, message.from_user.mention))
 
     if len(message.command) != 2:
-        buttons = [[
-                    InlineKeyboardButton('🔰 ᴀᴅᴅ ᴍᴇ ᴛᴏ ʏᴏᴜʀ ɢʀᴏᴜᴘ 🔰', url=f'http://t.me/{temp.U_NAME}?startgroup=true')
-                ],
-                [
-                    InlineKeyboardButton("💔 အသဲကွဲ", callback_data="rnd_sad"), 
-                    InlineKeyboardButton("❤️ အချစ်", callback_data="rnd_love")
-                ],
-                [
-                    InlineKeyboardButton("👨‍👩‍👧‍👦 မိဘ", callback_data="rnd_parent"), 
-                    InlineKeyboardButton("👶 ကလေး", callback_data="rnd_child")
-                ],
-                [
-                    InlineKeyboardButton("🎉 သင်္ကြန်", callback_data="rnd_thingyan"), 
-                    InlineKeyboardButton("🌐 နိုင်ငံခြား", callback_data="rnd_other")
-                ],
-                [
-                    InlineKeyboardButton("🎊 အလှူသီချင်း", callback_data="rnd_ahlu"),
-                    InlineKeyboardButton("👩‍❤️‍👨 မင်္ဂလာဆောင်", callback_data="rnd_web")
-                ],
-                [
-                    InlineKeyboardButton("🚀 ခေတ်ပေါ်", callback_data="rnd_modern"),
-                    InlineKeyboardButton("📻ခောတ်ဟောင်း", callback_data="rnd_old"),
-                ]]
+        buttons = [
+            [
+                InlineKeyboardButton(
+                    "🔰 ᴀᴅᴅ ᴍᴇ ᴛᴏ ʏᴏᴜʀ ɢʀᴏᴜᴘ 🔰",
+                    url=f"http://t.me/{temp.U_NAME}?startgroup=true",
+                )
+            ],
+            [
+                InlineKeyboardButton("💔 အသဲကွဲ", callback_data="rnd_sad"),
+                InlineKeyboardButton("❤️ အချစ်", callback_data="rnd_love"),
+            ],
+            [
+                InlineKeyboardButton("👨‍👩‍👧‍👦 မိဘ", callback_data="rnd_parent"),
+                InlineKeyboardButton("👶 ကလေး", callback_data="rnd_child"),
+            ],
+            [
+                InlineKeyboardButton(
+                    "🎉 သင်္ကြန်", callback_data="rnd_thingyan"
+                ),
+                InlineKeyboardButton("🌐 နိုင်ငံခြား", callback_data="rnd_other"),
+            ],
+            [
+                InlineKeyboardButton("🎊 အလှူသီချင်း", callback_data="rnd_ahlu"),
+                InlineKeyboardButton(
+                    "👩‍❤️‍👨 မင်္ဂလာဆောင်", callback_data="rnd_web"
+                ),
+            ],
+            [
+                InlineKeyboardButton("🚀 ခေတ်ပေါ်", callback_data="rnd_modern"),
+                InlineKeyboardButton("📻ခောတ်ဟောင်း", callback_data="rnd_old"),
+            ],
+            # ⬇️ အဆိုတော် နာမည် ရိုက်ရှာရန် Button အသစ် ထည့်သွင်းလိုက်သည့် အပိုင်း
+            [
+                InlineKeyboardButton(
+                    "🔍 အဆိုတော် နာမည်ဖြင့် ရိုက်ရှာရန်",
+                    callback_data="search_artist",
+                )
+            ],
+        ]
         reply_markup = InlineKeyboardMarkup(buttons)
         
         current_time = datetime.now(pytz.timezone(TIMEZONE))
