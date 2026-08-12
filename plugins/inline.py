@@ -3,6 +3,8 @@ from pyrogram import Client
 from pyrogram.types import (
     InlineQuery,
     InlineQueryResultCachedDocument,
+    InlineQueryResultCachedVideo,
+    InlineQueryResultCachedAudio,
     InlineKeyboardMarkup,
     InlineKeyboardButton
 )
@@ -19,13 +21,13 @@ async def inline_search_handler(client: Client, query: InlineQuery):
     if not string:
         await query.answer(
             results=[],
-            switch_pm_text="🎵 သီချင်းအမည် ရိုက်ရှာပါ...",
+            switch_pm_text="🎵 သီချင်း/ဗီဒီယို အမည် ရိုက်ရှာပါ...",
             switch_pm_parameter="help",
         )
         return
 
     try:
-        # ကျွန်ုပ်တို့ ပြင်ထားသည့် Atlas Fuzzy Search DB ကို ခေါ်ယူခြင်း
+        # Atlas Fuzzy Search DB မှ ခေါ်ယူခြင်း
         files, next_offset, total = await get_search_results(
             chat_id=None, query=string, max_results=10
         )
@@ -33,7 +35,8 @@ async def inline_search_handler(client: Client, query: InlineQuery):
         results = []
         for file in files:
             file_id = file.file_id
-            file_name = file.file_name
+            file_name = file.file_name or "Media File"
+            file_type = getattr(file, "file_type", None)
 
             # ❤️ Save to Playlist Button ဖန်တီးခြင်း
             save_button = InlineKeyboardMarkup([
@@ -45,22 +48,47 @@ async def inline_search_handler(client: Client, query: InlineQuery):
                 ]
             ])
 
-            # Telegram ရလဒ် ပြသရန် ရွေးချယ်ခြင်း
-            results.append(
-                InlineQueryResultCachedDocument(
-                    title=file_name,
-                    document_file_id=file_id,
-                    description=f"Size: {file.file_size}",
-                    caption=file.caption or file_name,
-                    reply_markup=save_button  # <--- ဒီနေရာတွင် reply_markup ထည့်ပေးထားပါသည်
+            caption_text = file.caption or file_name
+
+            # 📹 Video ဖိုင်များအတွက်
+            if file_type == "video" or file_name.lower().endswith(('.mp4', '.mkv', '.webm', '.avi', '.mov')):
+                results.append(
+                    InlineQueryResultCachedVideo(
+                        video_file_id=file_id,
+                        title=file_name,
+                        description=f"Size: {file.file_size}",
+                        caption=caption_text,
+                        reply_markup=save_button
+                    )
                 )
-            )
+
+            # 🎵 Audio/Music ဖိုင်များအတွက်
+            elif file_type == "audio" or file_name.lower().endswith(('.mp3', '.m4a', '.flac', '.wav', '.aac')):
+                results.append(
+                    InlineQueryResultCachedAudio(
+                        audio_file_id=file_id,
+                        caption=caption_text,
+                        reply_markup=save_button
+                    )
+                )
+
+            # 📁 အခြား Document/Zip/PDF ဖိုင်များအတွက်
+            else:
+                results.append(
+                    InlineQueryResultCachedDocument(
+                        title=file_name,
+                        document_file_id=file_id,
+                        description=f"Size: {file.file_size}",
+                        caption=caption_text,
+                        reply_markup=save_button
+                    )
+                )
 
         # ရှာတွေ့သည့် ရလဒ်များ Telegram ပေါ်သို့ တင်ပြခြင်း
         await query.answer(
             results=results,
             cache_time=1,
-            switch_pm_text=f"🔍 ရှာတွေ့သော သီချင်းရလဒ် - {total} ခု",
+            switch_pm_text=f"🔍 ရှာတွေ့သော ရလဒ် - {total} ခု",
             switch_pm_parameter="search",
         )
 
