@@ -1,6 +1,11 @@
 import logging
 from pyrogram import Client
-from pyrogram.types import InlineQuery, InlineQueryResultCachedDocument
+from pyrogram.types import (
+    InlineQuery,
+    InlineQueryResultCachedDocument,
+    InlineKeyboardMarkup,
+    InlineKeyboardButton
+)
 from database.ia_filterdb import get_search_results
 
 logger = logging.getLogger(__name__)
@@ -30,6 +35,16 @@ async def inline_search_handler(client: Client, query: InlineQuery):
             file_id = file.file_id
             file_name = file.file_name
 
+            # ❤️ Save to Playlist Button ဖန်တီးခြင်း
+            save_button = InlineKeyboardMarkup([
+                [
+                    InlineKeyboardButton(
+                        "❤️ Save to Playlist", 
+                        callback_data=f"add_fav_{file_id}"
+                    )
+                ]
+            ])
+
             # Telegram ရလဒ် ပြသရန် ရွေးချယ်ခြင်း
             results.append(
                 InlineQueryResultCachedDocument(
@@ -37,6 +52,7 @@ async def inline_search_handler(client: Client, query: InlineQuery):
                     document_file_id=file_id,
                     description=f"Size: {file.file_size}",
                     caption=file.caption or file_name,
+                    reply_markup=save_button  # <--- ဒီနေရာတွင် reply_markup ထည့်ပေးထားပါသည်
                 )
             )
 
