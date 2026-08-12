@@ -134,14 +134,21 @@ async def start(client, message):
                 InlineKeyboardButton("🚀 ခေတ်ပေါ်", callback_data="rnd_modern"),
                 InlineKeyboardButton("📻ခောတ်ဟောင်း", callback_data="rnd_old"),
             ],
-            # ⬇️ ၁။ ဒီ Chat ထဲမှာတင် Inline တိုက်ရိုက် ရှာရန် ခလုတ်
+            # ⬇️ ၁။ မူလ ပါဝင်သော Callback Button
             [
                 InlineKeyboardButton(
                     "🔍 အဆိုတော် or သီချင်း နာမည်ဖြင့် ရိုက်ရှာရန်",
+                    callback_data="search_artist",
+                )
+            ],
+            # ⬇️ ၂။ ဒီ Chat ထဲမှာတင် Inline တိုက်ရိုက် ရှာရန် ခလုတ်
+            [
+                InlineKeyboardButton(
+                    "⚡ Inline Search ဖြင့် တိုက်ရိုက် ရှာရန်",
                     switch_inline_query_current_chat="",
                 )
             ],
-            # ⬇️ ၂။ အခြား Group/Chat သို့ သီချင်း ရှာပြီး ပို့ရန် ခလုတ်
+            # ⬇️ ၃။ အခြား Group/Chat သို့ သီချင်း ရှာပြီး ပို့ရန် ခလုတ်
             [
                 InlineKeyboardButton(
                     "🚀 အခြား Chat သို့ သီချင်းရှာပြီး ပို့ရန်",
