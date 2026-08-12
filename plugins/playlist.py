@@ -105,3 +105,34 @@ async def view_playlist(client: Client, query: CallbackQuery):
             "❌ အချက်အလက် ခေါ်ယူရာတွင် အမှားအယွင်း ဖြစ်ပေါ်ခဲ့သည်!",
             show_alert=True,
         )
+
+
+# ၄။ 🎵 Playlist ထဲမှ သီချင်း/ဗီဒီယို နှိပ်သည့်အခါ ဖိုင်ပြန်ပို့ပေးခြင်း
+@Client.on_callback_query(filters.regex(r"^file_(.+)"))
+async def send_playlist_file(client: Client, query: CallbackQuery):
+    try:
+        file_id = query.data.split("_", 1)[1]
+        files_res = await get_file_details(file_id)
+
+        if not files_res:
+            return await query.answer(
+                "❌ ဖိုင် အချက်အလက် ရှာမတွေ့ပါ!", show_alert=True
+            )
+
+        file = files_res[0]
+        caption = getattr(file, "caption", "") or getattr(file, "file_name", "")
+
+        # send_cached_media ကို သုံးခြင်းဖြင့် Video / Audio / Document မူရင်းအတိုင်း ပို့ပေးမည် ဖြစ်သည်
+        await client.send_cached_media(
+            chat_id=query.from_user.id,
+            file_id=file_id,
+            caption=caption,
+        )
+        await query.answer("▶️ ဖိုင် ပို့ပေးလိုက်ပါပြီ!")
+
+    except Exception as e:
+        logger.error(f"Error in send_playlist_file: {e}")
+        await query.answer(
+            "❌ ဖိုင် ပို့ပေးရာတွင် အမှားအယွင်း ဖြစ်ပေါ်ခဲ့သည်!",
+            show_alert=True,
+        )
