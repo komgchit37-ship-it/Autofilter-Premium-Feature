@@ -38,12 +38,16 @@ async def inline_search_handler(client: Client, query: InlineQuery):
             file_name = file.file_name or "Media File"
             file_type = getattr(file, "file_type", None)
 
-            # ❤️ Save to Playlist Button ဖန်တီးခြင်း
+            # ❤️ Save to Playlist နှင့် My Playlist Button များ
             save_button = InlineKeyboardMarkup([
                 [
                     InlineKeyboardButton(
-                        "❤️ Save to Playlist", 
+                        "❤️ Save", 
                         callback_data=f"add_fav_{file_id}"
+                    ),
+                    InlineKeyboardButton(
+                        "🎧 My Playlist", 
+                        callback_data="my_playlist" # သင့် bot တွင် သတ်မှတ်ထားသော callback_data ကို သုံးပါ
                     )
                 ]
             ])
