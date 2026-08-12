@@ -123,26 +123,29 @@ async def start(client, message):
                 InlineKeyboardButton("👶 ကလေး", callback_data="rnd_child"),
             ],
             [
-                InlineKeyboardButton(
-                    "🎉 သင်္ကြန်", callback_data="rnd_thingyan"
-                ),
+                InlineKeyboardButton("🎉 သင်္ကြန်", callback_data="rnd_thingyan"),
                 InlineKeyboardButton("🌐 နိုင်ငံခြား", callback_data="rnd_other"),
             ],
             [
                 InlineKeyboardButton("🎊 အလှူသီချင်း", callback_data="rnd_ahlu"),
-                InlineKeyboardButton(
-                    "👩‍❤️‍👨 မင်္ဂလာဆောင်", callback_data="rnd_web"
-                ),
+                InlineKeyboardButton("👩‍❤️‍👨 မင်္ဂလာဆောင်", callback_data="rnd_web"),
             ],
             [
                 InlineKeyboardButton("🚀 ခေတ်ပေါ်", callback_data="rnd_modern"),
                 InlineKeyboardButton("📻ခောတ်ဟောင်း", callback_data="rnd_old"),
             ],
-            # ⬇️ အဆိုတော် နာမည် ရိုက်ရှာရန် Button အသစ် ထည့်သွင်းလိုက်သည့် အပိုင်း
+            # ⬇️ ၁။ ဒီ Chat ထဲမှာတင် Inline တိုက်ရိုက် ရှာရန် ခလုတ်
             [
                 InlineKeyboardButton(
                     "🔍 အဆိုတော် or သီချင်း နာမည်ဖြင့် ရိုက်ရှာရန်",
-                    callback_data="search_artist",
+                    switch_inline_query_current_chat="",
+                )
+            ],
+            # ⬇️ ၂။ အခြား Group/Chat သို့ သီချင်း ရှာပြီး ပို့ရန် ခလုတ်
+            [
+                InlineKeyboardButton(
+                    "🚀 အခြား Chat သို့ သီချင်းရှာပြီး ပို့ရန်",
+                    switch_inline_query="",
                 )
             ],
         ]
