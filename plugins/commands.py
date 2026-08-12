@@ -134,6 +134,11 @@ async def start(client, message):
                 InlineKeyboardButton("🚀 ခေတ်ပေါ်", callback_data="rnd_modern"),
                 InlineKeyboardButton("📻ခောတ်ဟောင်း", callback_data="rnd_old"),
             ],
+            
+            [
+                InlineKeyboardButton("🚀 ခေတ်ပေါ်", callback_data="rnd_modern"),
+                InlineKeyboardButton("🎧 My Playlist", callback_data="my_playlist"),
+            ],
             # ⬇️ ၁။ မူလ ပါဝင်သော Callback Button
             [
                 InlineKeyboardButton(
