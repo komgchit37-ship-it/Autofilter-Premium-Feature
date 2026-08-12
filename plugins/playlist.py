@@ -20,7 +20,6 @@ async def add_fav_handler(client: Client, query: CallbackQuery):
         file_id = query.data.split("_", 2)[2]
         user_id = query.from_user.id
 
-        # db.add_to_playlist ဖြင့် ခေါ်သုံးခြင်း
         await db.add_to_playlist(user_id, file_id)
         await query.answer(
             "❤️ သီချင်းကို သင်၏ Playlist ထဲသို့ သိမ်းဆည်းလိုက်ပါပြီ!",
@@ -40,7 +39,6 @@ async def rem_fav_handler(client: Client, query: CallbackQuery):
         file_id = query.data.split("_", 2)[2]
         user_id = query.from_user.id
 
-        # db.remove_from_playlist ဖြင့် ခေါ်သုံးခြင်း
         await db.remove_from_playlist(user_id, file_id)
         await query.answer(
             "🗑️ သီချင်းကို Playlist ထဲမှ ဖျက်လိုက်ပါပြီ!", show_alert=True
@@ -59,7 +57,6 @@ async def view_playlist(client: Client, query: CallbackQuery):
     try:
         user_id = query.from_user.id
 
-        # db.get_playlist ဖြင့် ခေါ်သုံးခြင်း
         fav_ids = await db.get_playlist(user_id)
 
         if not fav_ids:
@@ -94,10 +91,27 @@ async def view_playlist(client: Client, query: CallbackQuery):
         markup = InlineKeyboardMarkup(buttons)
         text = "🎧 **သင့်စိတ်ကြိုက် Playlist သီချင်းများ:**\n\n(သီချင်းနားထောင်ရန် နှိပ်ပါ သို့မဟုတ် 🗑️ ဖြင့် ပြန်ဖျက်ပါ)"
 
-        try:
-            await query.message.edit_text(text, reply_markup=markup)
-        except Exception:
-            await query.message.reply_text(text, reply_markup=markup)
+        # PM Chat ထဲမှ နှိပ်ပါက စာသားကို တိုက်ရိုက် Edit ပေးပြီး၊ Inline Search မှ နှိပ်ပါက PM ထို့ သီးသန့် ပို့ပေးမည်
+        if query.message:
+            try:
+                await query.message.edit_text(text, reply_markup=markup)
+            except Exception:
+                await client.send_message(
+                    chat_id=user_id, text=text, reply_markup=markup
+                )
+        else:
+            try:
+                await client.send_message(
+                    chat_id=user_id, text=text, reply_markup=markup
+                )
+                await query.answer(
+                    "📩 သင့် PM (Chat) ထံသို့ Playlist ပို့ပေးလိုက်ပါပြီ!"
+                )
+            except Exception:
+                await query.answer(
+                    "❌ Playlist ကြည့်ရန် Bot ကို Chat (PM) တွင် /start အရင်နှိပ်ပေးပါ။",
+                    show_alert=True,
+                )
 
     except Exception as e:
         logger.error(f"Error in view_playlist: {e}")
@@ -120,9 +134,11 @@ async def send_playlist_file(client: Client, query: CallbackQuery):
             )
 
         file = files_res[0]
-        caption = getattr(file, "caption", "") or getattr(file, "file_name", "")
+        caption = getattr(file, "caption", "") or getattr(
+            file, "file_name", ""
+        )
 
-        # send_cached_media ကို သုံးခြင်းဖြင့် Video / Audio / Document မူရင်းအတိုင်း ပို့ပေးမည် ဖြစ်သည်
+        # send_cached_media ဖြင့် Video / Audio မူရင်းအတိုင်း ပို့ပေးမည်
         await client.send_cached_media(
             chat_id=query.from_user.id,
             file_id=file_id,
@@ -133,6 +149,6 @@ async def send_playlist_file(client: Client, query: CallbackQuery):
     except Exception as e:
         logger.error(f"Error in send_playlist_file: {e}")
         await query.answer(
-            "❌ ဖိုင် ပို့ပေးရာတွင် အမှားအယွင်း ဖြစ်ပေါ်ခဲ့သည်!",
+            "❌ ဖိုင် ပို့ပေးရာတွင် အမှားအယွင်း ဖြစ်ပေါ်ခဲ့သည် (Bot ကို Start နှိပ်ထားပါ)!",
             show_alert=True,
         )
