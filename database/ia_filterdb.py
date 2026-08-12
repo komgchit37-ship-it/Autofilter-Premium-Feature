@@ -149,88 +149,76 @@ async def get_search_results(chat_id, query, file_type=None, max_results=None, o
                 settings = await get_settings(int(chat_id))
                 max_results = 10 if settings.get("max_btn") else int(MAX_B_TN)
 
-    # This is the new "middle-ground" regex logic for speed and flexibility
+    # Search Query ကို စာသားအဖြစ် ပြင်ဆင်ခြင်း
     if isinstance(query, list):
-        # This part handles season searches etc., where you need to match any of the full phrases.
-        raw_pattern = '|'.join(re.escape(q.strip()) for q in query if q.strip())
-        regex_list = [re.compile(raw_pattern, re.IGNORECASE)] if raw_pattern else []
-        
-        if USE_CAPTION_FILTER:
-            filter_mongo = {"$or": ([{"file_name": r} for r in regex_list] + [{"caption": r} for r in regex_list])}
-        else:
-            filter_mongo = {"$or": [{"file_name": r} for r in regex_list]}
+        search_text = " ".join([q.strip() for q in query if q.strip()])
     else:
-        query = query.strip()
-        if not query:
-            return [], None, 0
-            
-        # This is the key change for balancing speed and flexibility
-        if ' ' in query:
-            # For multi-word queries, allow spaces, dots, or hyphens between words.
-            words = [re.escape(word) for word in query.split()]
-            raw_pattern = r'.*'.join(words)
-        else:
-            # For single-word queries, use a flexible substring search.
-            raw_pattern = re.escape(query)
+        search_text = query.strip()
 
-        try:
-            regex = re.compile(raw_pattern, flags=re.IGNORECASE)
-        except re.error:
-            return [], None, 0
+    if not search_text:
+        return [], None, 0
 
-        if USE_CAPTION_FILTER:
-            filter_mongo = {"$or": [{"file_name": regex}, {"caption": regex}]}
-        else:
-            filter_mongo = {"file_name": regex}
+    # ရှာဖွေမည့် Field များ သတ်မှတ်ခြင်း (file_name သို့မဟုတ် caption)
+    paths = ["file_name", "caption"] if USE_CAPTION_FILTER else ["file_name"]
 
+    # MongoDB Atlas Search Fuzzy Pipeline
+    pipeline = [
+        {
+            "$search": {
+                "index": "default",  # Atlas တွင် ပေးခဲ့သော Search Index နာမည်
+                "text": {
+                    "query": search_text,
+                    "path": paths,
+                    "fuzzy": {
+                        "maxEdits": 2,      # စာလုံးပေါင်း ၂ လုံးအထိ မှားနေလျှင် အလိုအလျောက် ပြင်ပေးမည်
+                        "prefixLength": 1   # စာလုံး အစ ၁ လုံးကို အမှန်ယူမည်
+                    }
+                }
+            }
+        }
+    ]
+
+    # File Type သီးသန့် စစ်ထုတ်ရန် ရှိပါက ထည့်သွင်းခြင်း
     if file_type:
-        filter_mongo["file_type"] = file_type
+        pipeline.append({"$match": {"file_type": file_type}})
+
+    limit = max_results + 1
+
+    # Paging (Offset & Limit) Pipeline
+    paged_pipeline = pipeline + [
+        {"$skip": offset},
+        {"$limit": limit}
+    ]
+
+    # Database Collection များထံမှ ရှာဖွေခြင်း
+    async def fetch_from_col(media_model):
+        cursor = media_model.collection.aggregate(paged_pipeline)
+        raw_docs = await cursor.to_list(length=limit)
+        # Raw MongoDB Dict ကို Umongo Document Object သို့ ပြန်ပြောင်းခြင်း
+        return [media_model.build_from_mongo(doc) for doc in raw_docs]
+
+    tasks = [fetch_from_col(Media)]
+    if MULTIPLE_DB:
+        tasks.append(fetch_from_col(Media2))
+
+    results = await asyncio.gather(*tasks)
     
-    # The rest of the function remains the same, using parallel queries.
-    if ULTRA_FAST_MODE:
-        limit = max_results + 1
-        find_tasks = [Media.find(filter_mongo).sort("$natural", -1).skip(offset).limit(limit).to_list(length=limit)]
-        if MULTIPLE_DB:
-            find_tasks.append(Media2.find(filter_mongo).sort("$natural", -1).skip(offset).limit(limit).to_list(length=limit))
-        
-        results = await asyncio.gather(*find_tasks)
-        files = results[0]
-        if MULTIPLE_DB and len(results) > 1:
-            files.extend(results[1])
-        
-        files = files[:limit]
+    files = results[0]
+    if MULTIPLE_DB and len(results) > 1:
+        files.extend(results[1])
 
-        has_next_page = len(files) > max_results
-        if has_next_page:
-            files = files[:-1]
+    files = files[:limit]
 
-        next_offset = offset + len(files) if has_next_page else ""
-        total_results = offset + len(files) + (1 if has_next_page else 0)
-    else:
-        count_tasks = [Media.count_documents(filter_mongo)]
-        find_tasks = [Media.find(filter_mongo).sort("$natural", -1).skip(offset).limit(max_results).to_list(length=max_results)]
+    # Next Page (ရှေ့စာမျက်နှာ ရှိမရှိ) စစ်ဆေးခြင်း
+    has_next_page = len(files) > max_results
+    if has_next_page:
+        files = files[:-1]
 
-        if MULTIPLE_DB:
-            count_tasks.append(Media2.count_documents(filter_mongo))
-            find_tasks.append(Media2.find(filter_mongo).sort("$natural", -1).skip(offset).limit(max_results).to_list(length=max_results))
-        
-        count_results, find_results = await asyncio.gather(
-            asyncio.gather(*count_tasks),
-            asyncio.gather(*find_tasks)
-        )
-        
-        total_results = sum(count_results)
-        files = find_results[0]
-        if MULTIPLE_DB and len(find_results) > 1:
-            files.extend(find_results[1])
-        
-        files = files[:max_results]
-        
-        next_offset = offset + len(files)
-        if next_offset >= total_results:
-            next_offset = ""
+    next_offset = offset + len(files) if has_next_page else ""
+    total_results = offset + len(files) + (1 if has_next_page else 0)
 
     return files, next_offset, total_results
+
 
 async def get_bad_files(query, file_type=None):
     query = query.strip()
