@@ -12,7 +12,8 @@ from pyrogram.types import (
 )
 from database.ia_filterdb import get_search_results
 from database.users_chats_db import db
-from info import IS_VERIFY, SUPPORT_GROUP # သင့် info.py ထဲမှ Channel Link များ သုံးနိုင်သည်
+# SUPPORT_GROUP ကို ဖြုတ်ပြီး IS_VERIFY တစ်ခုတည်းပဲ Import ခေါ်ပါ
+from info import IS_VERIFY
 
 logger = logging.getLogger(__name__)
 
