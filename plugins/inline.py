@@ -12,7 +12,7 @@ from pyrogram.types import (
 )
 from database.ia_filterdb import get_search_results
 from database.users_chats_db import db
-from info import IS_VERIFY
+from info import IS_VERIFY, SUPPORT_GROUP # သင့် info.py ထဲမှ Channel Link များ သုံးနိုင်သည်
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +21,12 @@ logger = logging.getLogger(__name__)
 async def inline_search_handler(client: Client, query: InlineQuery):
     user_id = query.from_user.id
     string = query.query.strip()
+    
+    bot = await client.get_me()
+    bot_username = bot.username
+    
+    # 🔗 သင့် Music Channel Link ကို ဒီနေရာမှာ ထည့်ပါ
+    channel_link = "https://t.me/musicloverpublic"
 
     # User စာမရိုက်ရသေးပါက Guide စာသား ပြသပေးခြင်း
     if not string:
@@ -31,16 +37,12 @@ async def inline_search_handler(client: Client, query: InlineQuery):
         )
         return
 
-    # =========================================================
     # 🔒 Verification / Premium Status စစ်ဆေးခြင်း
-    # =========================================================
     if IS_VERIFY:
         is_premium = await db.has_premium_access(user_id)
         is_verified = await db.is_user_verified(user_id)
 
-        # Premium အကောင့်လည်း မဟုတ်၊ Verify လည်း မကျော်ရသေးပါက
         if not (is_premium or is_verified):
-            bot_username = (await client.get_me()).username
             verify_link = f"https://t.me/{bot_username}?start=verify"
 
             return await query.answer(
@@ -50,7 +52,7 @@ async def inline_search_handler(client: Client, query: InlineQuery):
                         description="Inline Search မသုံးမီ Verification အရင် ကျော်ပေးပါ",
                         input_message_content=InputTextMessageContent(
                             "⚠️ **Inline Search အသုံးပြုရန် Verification ပြုလုပ်ရန် လိုအပ်ပါသည်!**\n\n"
-                            "သီချင်း/ဗီဒီယိုများ ရှာဖွေနိုင်ရန် အောက်ပါ Link ကို နှိပ်ပြီး Verification ကျော်လွန်ပေးပါ။ (သို့မဟုတ် Bot PM တွင် Verify လုပ်ပါ)"
+                            "သီချင်း/ဗီဒီယိုများ ရှာဖွေနိုင်ရန် အောက်ပါ Link ကို နှိပ်ပြီး Verification ကျော်လွန်ပေးပါ။"
                         ),
                         reply_markup=InlineKeyboardMarkup([
                             [InlineKeyboardButton("🔓 Verify / Unlock Search", url=verify_link)]
@@ -62,11 +64,8 @@ async def inline_search_handler(client: Client, query: InlineQuery):
                 switch_pm_parameter="verify"
             )
 
-    # =========================================================
     # 🔍 Verification အဆင်ပြေပါက ရလဒ်များ ရှာဖွေပြသခြင်း
-    # =========================================================
     try:
-        # Atlas Fuzzy Search DB မှ ခေါ်ယူခြင်း
         files, next_offset, total = await get_search_results(
             chat_id=None, query=string, max_results=10
         )
@@ -77,7 +76,7 @@ async def inline_search_handler(client: Client, query: InlineQuery):
             file_name = file.file_name or "Media File"
             file_type = getattr(file, "file_type", None)
 
-            # ❤️ Save to Playlist နှင့် My Playlist Button များ
+            # 🔘 ခလုတ် (၄) ခုပါသော Keyboard ပြင်ဆင်ခြင်း
             save_button = InlineKeyboardMarkup([
                 [
                     InlineKeyboardButton(
@@ -88,12 +87,22 @@ async def inline_search_handler(client: Client, query: InlineQuery):
                         "🎧 My Playlist", 
                         callback_data="my_playlist"
                     )
+                ],
+                [
+                    InlineKeyboardButton(
+                        "🤖 Bot သို့သွားရန်", 
+                        url=f"https://t.me/{bot_username}?start=true"
+                    ),
+                    InlineKeyboardButton(
+                        "🎵 Music Channel", 
+                        url=channel_link
+                    )
                 ]
             ])
 
             caption_text = file.caption or file_name
 
-            # 📹 Video ဖိုင်များအတွက်
+            # 📹 Video
             if file_type == "video" or file_name.lower().endswith(('.mp4', '.mkv', '.webm', '.avi', '.mov')):
                 results.append(
                     InlineQueryResultCachedVideo(
@@ -105,7 +114,7 @@ async def inline_search_handler(client: Client, query: InlineQuery):
                     )
                 )
 
-            # 🎵 Audio/Music ဖိုင်များအတွက်
+            # 🎵 Audio
             elif file_type == "audio" or file_name.lower().endswith(('.mp3', '.m4a', '.flac', '.wav', '.aac')):
                 results.append(
                     InlineQueryResultCachedAudio(
@@ -115,7 +124,7 @@ async def inline_search_handler(client: Client, query: InlineQuery):
                     )
                 )
 
-            # 📁 အခြား Document/Zip/PDF ဖိုင်များအတွက်
+            # 📁 Document
             else:
                 results.append(
                     InlineQueryResultCachedDocument(
@@ -127,7 +136,6 @@ async def inline_search_handler(client: Client, query: InlineQuery):
                     )
                 )
 
-        # ရှာတွေ့သည့် ရလဒ်များ Telegram ပေါ်သို့ တင်ပြခြင်း
         await query.answer(
             results=results,
             cache_time=1,
