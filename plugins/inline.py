@@ -2,19 +2,24 @@ import logging
 from pyrogram import Client
 from pyrogram.types import (
     InlineQuery,
+    InlineQueryResultArticle,
     InlineQueryResultCachedDocument,
     InlineQueryResultCachedVideo,
     InlineQueryResultCachedAudio,
+    InputTextMessageContent,
     InlineKeyboardMarkup,
     InlineKeyboardButton
 )
 from database.ia_filterdb import get_search_results
+from database.users_chats_db import db
+from info import IS_VERIFY
 
 logger = logging.getLogger(__name__)
 
 
 @Client.on_inline_query()
 async def inline_search_handler(client: Client, query: InlineQuery):
+    user_id = query.from_user.id
     string = query.query.strip()
 
     # User စာမရိုက်ရသေးပါက Guide စာသား ပြသပေးခြင်း
@@ -26,6 +31,40 @@ async def inline_search_handler(client: Client, query: InlineQuery):
         )
         return
 
+    # =========================================================
+    # 🔒 Verification / Premium Status စစ်ဆေးခြင်း
+    # =========================================================
+    if IS_VERIFY:
+        is_premium = await db.has_premium_access(user_id)
+        is_verified = await db.is_user_verified(user_id)
+
+        # Premium အကောင့်လည်း မဟုတ်၊ Verify လည်း မကျော်ရသေးပါက
+        if not (is_premium or is_verified):
+            bot_username = (await client.get_me()).username
+            verify_link = f"https://t.me/{bot_username}?start=verify"
+
+            return await query.answer(
+                results=[
+                    InlineQueryResultArticle(
+                        title="🔒 Verification ပြုလုပ်ရန် လိုအပ်ပါသည်",
+                        description="Inline Search မသုံးမီ Verification အရင် ကျော်ပေးပါ",
+                        input_message_content=InputTextMessageContent(
+                            "⚠️ **Inline Search အသုံးပြုရန် Verification ပြုလုပ်ရန် လိုအပ်ပါသည်!**\n\n"
+                            "သီချင်း/ဗီဒီယိုများ ရှာဖွေနိုင်ရန် အောက်ပါ Link ကို နှိပ်ပြီး Verification ကျော်လွန်ပေးပါ။ (သို့မဟုတ် Bot PM တွင် Verify လုပ်ပါ)"
+                        ),
+                        reply_markup=InlineKeyboardMarkup([
+                            [InlineKeyboardButton("🔓 Verify / Unlock Search", url=verify_link)]
+                        ])
+                    )
+                ],
+                cache_time=1,
+                switch_pm_text="🔒 Verification ကျော်ရန် အောက်ပါ Link ကိုနှိပ်ပါ",
+                switch_pm_parameter="verify"
+            )
+
+    # =========================================================
+    # 🔍 Verification အဆင်ပြေပါက ရလဒ်များ ရှာဖွေပြသခြင်း
+    # =========================================================
     try:
         # Atlas Fuzzy Search DB မှ ခေါ်ယူခြင်း
         files, next_offset, total = await get_search_results(
@@ -47,7 +86,7 @@ async def inline_search_handler(client: Client, query: InlineQuery):
                     ),
                     InlineKeyboardButton(
                         "🎧 My Playlist", 
-                        callback_data="my_playlist" # သင့် bot တွင် သတ်မှတ်ထားသော callback_data ကို သုံးပါ
+                        callback_data="my_playlist"
                     )
                 ]
             ])
