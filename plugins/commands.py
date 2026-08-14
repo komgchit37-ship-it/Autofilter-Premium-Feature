@@ -117,22 +117,24 @@ async def start(client, message):
             [
                 InlineKeyboardButton("💔 အသဲကွဲ", callback_data="rnd_sad"),
                 InlineKeyboardButton("❤️ အချစ်", callback_data="rnd_love"),
-            ],
-            [
                 InlineKeyboardButton("👨‍👩‍👧‍👦 မိဘ", callback_data="rnd_parent"),
                 InlineKeyboardButton("👶 ကလေး", callback_data="rnd_child"),
             ],
             [
-                InlineKeyboardButton("🎉 သင်္ကြန်", callback_data="rnd_thingyan"),
-                InlineKeyboardButton("🌐 နိုင်ငံခြား", callback_data="rnd_other"),
+                InlineKeyboardButton("🕺 Male အဆိုတော်များ", callback_data="rnd_male"),
+            ],
+            [
+                InlineKeyboardButton("💃 Female အဆိုတော်များ", callback_data="rnd_female"),
             ],
             [
                 InlineKeyboardButton("🎊 အလှူသီချင်း", callback_data="rnd_ahlu"),
                 InlineKeyboardButton("👩‍❤️‍👨 မင်္ဂလာဆောင်", callback_data="rnd_web"),
+                InlineKeyboardButton("🎉 သင်္ကြန်", callback_data="rnd_thingyan"),
             ],
             [
                 InlineKeyboardButton("🚀 ခေတ်ပေါ်", callback_data="rnd_modern"),
                 InlineKeyboardButton("📻ခောတ်ဟောင်း", callback_data="rnd_old"),
+                InlineKeyboardButton("🌐 နိုင်ငံခြား", callback_data="rnd_other"),
             ],
             
             [
